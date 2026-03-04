@@ -1,0 +1,10 @@
+# Claude TUI Configuration
+# Copy to ~/.config/claude-tui/config.toml
+
+# Default claude command to use when creating new sessions
+default_claude_cmd = "claude"
+
+# Aliases for different Claude configurations
+[aliases]
+work = "claude-work"
+personal = "claude-personal"
