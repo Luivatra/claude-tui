@@ -75,8 +75,7 @@ pub fn render_terminal(frame: &mut Frame, area: Rect, session: &Session, show_bo
     // Clear the area first
     frame.render_widget(Clear, area);
 
-    let paragraph = Paragraph::new(lines)
-        .style(Style::default().bg(Color::Black));
+    let paragraph = Paragraph::new(lines).style(Style::default().bg(Color::Black));
 
     if show_border {
         let block = Block::default()

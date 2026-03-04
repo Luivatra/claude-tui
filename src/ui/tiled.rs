@@ -89,7 +89,7 @@ pub fn calculate_grid(area: Rect, count: usize) -> Vec<Rect> {
 
     // Calculate grid dimensions
     let cols = (count as f64).sqrt().ceil() as usize;
-    let rows = (count + cols - 1) / cols;
+    let rows = count.div_ceil(cols);
 
     let row_constraints: Vec<Constraint> = (0..rows)
         .map(|_| Constraint::Percentage(100 / rows as u16))

@@ -103,7 +103,7 @@ fn days_from_date(year: i32, month: u32, day: u32) -> i64 {
 
     // Days from month (approximate)
     let month_days = [0, 31, 59, 90, 120, 151, 181, 212, 243, 273, 304, 334];
-    if m >= 1 && m <= 12 {
+    if (1..=12).contains(&m) {
         days += month_days[(m - 1) as usize];
     }
 
@@ -201,19 +201,13 @@ fn fetch_usage_inner(config_dir: Option<&PathBuf>) -> Result<UsageData> {
             .as_ref()
             .and_then(|w| w.utilization)
             .map(|u| (u as u8).min(100)),
-        five_hour_resets_at: usage
-            .five_hour
-            .as_ref()
-            .and_then(|w| w.resets_at.clone()),
+        five_hour_resets_at: usage.five_hour.as_ref().and_then(|w| w.resets_at.clone()),
         seven_day_percent: usage
             .seven_day
             .as_ref()
             .and_then(|w| w.utilization)
             .map(|u| (u as u8).min(100)),
-        seven_day_resets_at: usage
-            .seven_day
-            .as_ref()
-            .and_then(|w| w.resets_at.clone()),
+        seven_day_resets_at: usage.seven_day.as_ref().and_then(|w| w.resets_at.clone()),
     })
 }
 
@@ -227,15 +221,13 @@ impl UsageFetcher {
         let data_clone = Arc::clone(&data);
 
         // Spawn background thread to fetch usage periodically
-        std::thread::spawn(move || {
-            loop {
-                if let Ok(usage) = fetch_usage_inner(config_dir.as_ref()) {
-                    if let Ok(mut d) = data_clone.lock() {
-                        *d = usage;
-                    }
+        std::thread::spawn(move || loop {
+            if let Ok(usage) = fetch_usage_inner(config_dir.as_ref()) {
+                if let Ok(mut d) = data_clone.lock() {
+                    *d = usage;
                 }
-                std::thread::sleep(refresh_interval);
             }
+            std::thread::sleep(refresh_interval);
         });
 
         Self { data }

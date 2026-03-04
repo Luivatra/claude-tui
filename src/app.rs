@@ -42,7 +42,8 @@ pub struct App {
 impl App {
     pub fn new(config: Config) -> Self {
         let default_directory = std::env::current_dir().unwrap_or_else(|_| PathBuf::from("."));
-        let usage_fetcher = UsageFetcher::new(Duration::from_secs(60), config.claude_config_dir.clone());
+        let usage_fetcher =
+            UsageFetcher::new(Duration::from_secs(60), config.claude_config_dir.clone());
         Self {
             sessions: Vec::new(),
             active_index: 0,
@@ -104,8 +105,12 @@ impl App {
         let (search_dir, prefix) = if path.is_dir() && expanded_input.ends_with('/') {
             (path.clone(), String::new())
         } else {
-            let parent = path.parent().unwrap_or(std::path::Path::new(".")).to_path_buf();
-            let prefix = path.file_name()
+            let parent = path
+                .parent()
+                .unwrap_or(std::path::Path::new("."))
+                .to_path_buf();
+            let prefix = path
+                .file_name()
                 .map(|s| s.to_string_lossy().to_string())
                 .unwrap_or_default();
             (parent, prefix)
@@ -182,6 +187,7 @@ impl App {
         self.error_message = Some(msg);
     }
 
+    #[allow(dead_code)]
     pub fn clear_error(&mut self) {
         self.error_message = None;
     }
@@ -196,13 +202,21 @@ impl App {
         self.create_session_in_dir(name, claude_cmd, self.default_directory.clone())
     }
 
-    pub fn create_session_in_dir(&mut self, name: Option<String>, claude_cmd: Option<&str>, directory: PathBuf) -> Result<()> {
+    pub fn create_session_in_dir(
+        &mut self,
+        name: Option<String>,
+        claude_cmd: Option<&str>,
+        directory: PathBuf,
+    ) -> Result<()> {
         let idx = self.sessions.len() + 1;
         let name = name.unwrap_or_else(|| format!("session-{}", idx));
         let cmd = self.config.get_claude_cmd(claude_cmd);
 
         // Create with fullscreen size initially
-        let content_cols = self.terminal_cols.saturating_sub(self.sidebar_width).saturating_sub(2);
+        let content_cols = self
+            .terminal_cols
+            .saturating_sub(self.sidebar_width)
+            .saturating_sub(2);
         let content_rows = self.terminal_rows.saturating_sub(3); // 1 help bar + 2 border
 
         let session = Session::new(
@@ -276,7 +290,9 @@ impl App {
                 width: self.terminal_cols.saturating_sub(self.sidebar_width),
                 height: self.terminal_rows,
             };
-            if let Some(idx) = crate::ui::session_at_position(content_area, self.sessions.len(), x, y) {
+            if let Some(idx) =
+                crate::ui::session_at_position(content_area, self.sessions.len(), x, y)
+            {
                 if let Some(session) = self.sessions.get_mut(idx) {
                     if up {
                         session.scroll_up(lines);
@@ -369,7 +385,10 @@ impl App {
 
     pub fn restore_sessions(&mut self, state: &PersistedState) -> Result<()> {
         // Calculate actual PTY size accounting for UI chrome
-        let content_cols = self.terminal_cols.saturating_sub(self.sidebar_width).saturating_sub(2);
+        let content_cols = self
+            .terminal_cols
+            .saturating_sub(self.sidebar_width)
+            .saturating_sub(2);
         let content_rows = self.terminal_rows.saturating_sub(3); // 1 help bar + 2 border
 
         for session_state in &state.sessions {
@@ -394,7 +413,9 @@ impl App {
             self.sessions.push(session);
         }
 
-        self.active_index = state.active_index.min(self.sessions.len().saturating_sub(1));
+        self.active_index = state
+            .active_index
+            .min(self.sessions.len().saturating_sub(1));
 
         // Resize all sessions for current view mode
         self.resize_sessions_for_view_mode();

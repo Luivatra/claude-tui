@@ -12,9 +12,9 @@ use clap::Parser;
 use config::{Args, Config};
 use crossterm::{
     event::{
-        self, DisableBracketedPaste, DisableMouseCapture, EnableBracketedPaste,
-        EnableMouseCapture, Event, KeyCode, KeyboardEnhancementFlags,
-        PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
+        self, DisableBracketedPaste, DisableMouseCapture, EnableBracketedPaste, EnableMouseCapture,
+        Event, KeyCode, KeyboardEnhancementFlags, PopKeyboardEnhancementFlags,
+        PushKeyboardEnhancementFlags,
     },
     execute,
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen},
@@ -49,9 +49,7 @@ fn main() -> Result<()> {
         EnterAlternateScreen,
         EnableMouseCapture,
         EnableBracketedPaste,
-        PushKeyboardEnhancementFlags(
-            KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES
-        )
+        PushKeyboardEnhancementFlags(KeyboardEnhancementFlags::DISAMBIGUATE_ESCAPE_CODES)
     )?;
     let backend = CrosstermBackend::new(stdout);
     let mut terminal = Terminal::new(backend)?;
@@ -266,15 +264,19 @@ fn draw_ui(frame: &mut Frame, app: &App) {
     // Create layout with sidebar on left (in main area, above help bar)
     let chunks = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Length(app.sidebar_width),
-            Constraint::Min(1),
-        ])
+        .constraints([Constraint::Length(app.sidebar_width), Constraint::Min(1)])
         .split(main_chunks[0]);
 
     // Draw sidebar
     let usage = app.usage();
-    ui::render_sidebar(frame, chunks[0], &app.sessions, app.active_index, &usage, app.animation_frame);
+    ui::render_sidebar(
+        frame,
+        chunks[0],
+        &app.sessions,
+        app.active_index,
+        &usage,
+        app.animation_frame,
+    );
 
     // Draw main content area
     match app.view_mode {
@@ -314,8 +316,7 @@ fn draw_empty_state(frame: &mut Frame, area: Rect) {
 
 fn draw_help_bar(frame: &mut Frame, area: Rect) {
     let help_text = " Ctrl+B: prefix | c: new | n/p: next/prev | 1-9: jump | t: tile | x: close | Ctrl+Q: quit ";
-    let help = Paragraph::new(help_text)
-        .style(Style::default().fg(Color::Black).bg(Color::White));
+    let help = Paragraph::new(help_text).style(Style::default().fg(Color::Black).bg(Color::White));
 
     frame.render_widget(help, area);
 }
@@ -335,15 +336,17 @@ fn draw_input_dialog(frame: &mut Frame, app: &App) {
         .borders(Borders::ALL)
         .border_style(Style::default().fg(Color::Yellow));
 
-    let mut lines = vec![
-        ratatui::text::Line::from(format!("{}_", app.input_buffer)),
-    ];
+    let mut lines = vec![ratatui::text::Line::from(format!("{}_", app.input_buffer))];
 
     // Show completion info if multiple matches
     if app.completions.len() > 1 {
         lines.push(ratatui::text::Line::from(""));
         lines.push(ratatui::text::Line::styled(
-            format!("({}/{}) Tab to cycle", app.completion_index + 1, app.completions.len()),
+            format!(
+                "({}/{}) Tab to cycle",
+                app.completion_index + 1,
+                app.completions.len()
+            ),
             Style::default().fg(Color::DarkGray),
         ));
     }
@@ -355,7 +358,10 @@ fn draw_input_dialog(frame: &mut Frame, app: &App) {
     frame.render_widget(text, area);
 }
 
-fn ask_restore(terminal: &mut Terminal<CrosstermBackend<io::Stdout>>, session_count: usize) -> Result<bool> {
+fn ask_restore(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    session_count: usize,
+) -> Result<bool> {
     loop {
         terminal.draw(|f| {
             let area = centered_rect(50, 7, f.area());

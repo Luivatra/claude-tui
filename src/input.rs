@@ -22,7 +22,7 @@ pub enum Action {
 
     // Input
     SendToSession(Vec<u8>),
-    ClickSidebar(u16), // session index clicked
+    ClickSidebar(u16),   // session index clicked
     ClickTile(u16, u16), // x, y position in content area
 
     // App control
@@ -147,20 +147,20 @@ fn key_to_bytes(event: KeyEvent) -> Vec<u8> {
             } else if has_ctrl {
                 // Ctrl+char - convert to control character (works for a-z, @, [, \, ], ^, _)
                 let lower = c.to_ascii_lowercase();
-                if lower >= 'a' && lower <= 'z' {
+                if lower.is_ascii_lowercase() {
                     let ctrl_char = (lower as u8) - b'a' + 1;
                     bytes.push(ctrl_char);
                 } else {
                     // Handle Ctrl+special chars
                     match c {
-                        '@' => bytes.push(0),    // Ctrl+@  = NUL
-                        '[' => bytes.push(0x1b), // Ctrl+[  = ESC
+                        '@' => bytes.push(0),     // Ctrl+@  = NUL
+                        '[' => bytes.push(0x1b),  // Ctrl+[  = ESC
                         '\\' => bytes.push(0x1c), // Ctrl+\  = FS
-                        ']' => bytes.push(0x1d), // Ctrl+]  = GS
-                        '^' => bytes.push(0x1e), // Ctrl+^  = RS
-                        '_' => bytes.push(0x1f), // Ctrl+_  = US
-                        '?' => bytes.push(0x7f), // Ctrl+?  = DEL
-                        ' ' => bytes.push(0),    // Ctrl+Space = NUL
+                        ']' => bytes.push(0x1d),  // Ctrl+]  = GS
+                        '^' => bytes.push(0x1e),  // Ctrl+^  = RS
+                        '_' => bytes.push(0x1f),  // Ctrl+_  = US
+                        '?' => bytes.push(0x7f),  // Ctrl+?  = DEL
+                        ' ' => bytes.push(0),     // Ctrl+Space = NUL
                         _ => {
                             // For other chars, just send as-is
                             let mut buf = [0u8; 4];
@@ -326,7 +326,10 @@ fn key_to_bytes(event: KeyEvent) -> Vec<u8> {
         }
         KeyCode::F(n) => {
             // Modifier codes: 2=Shift, 3=Alt, 4=Shift+Alt, 5=Ctrl, 6=Shift+Ctrl, 7=Alt+Ctrl, 8=Shift+Alt+Ctrl
-            let modifier = if event.modifiers.contains(KeyModifiers::SHIFT | KeyModifiers::CONTROL) {
+            let modifier = if event
+                .modifiers
+                .contains(KeyModifiers::SHIFT | KeyModifiers::CONTROL)
+            {
                 Some(6)
             } else if event.modifiers.contains(KeyModifiers::CONTROL) {
                 Some(5)

@@ -34,7 +34,7 @@ fn render_session_list(
     animation_frame: u8,
 ) {
     // Animation: blink every ~16 frames (8ms * 16 = ~128ms per blink)
-    let blink_on = (animation_frame / 16) % 2 == 0;
+    let blink_on = (animation_frame / 16).is_multiple_of(2);
 
     let items: Vec<ListItem> = sessions
         .iter()
@@ -57,9 +57,15 @@ fn render_session_list(
             };
 
             // Attention indicator: show blinking marker when session needs attention
-            let (attention_icon, attention_style) = if session.needs_attention && i != active_index {
+            let (attention_icon, attention_style) = if session.needs_attention && i != active_index
+            {
                 if blink_on {
-                    (" !", Style::default().fg(Color::Magenta).add_modifier(Modifier::BOLD))
+                    (
+                        " !",
+                        Style::default()
+                            .fg(Color::Magenta)
+                            .add_modifier(Modifier::BOLD),
+                    )
                 } else {
                     (" !", Style::default().fg(Color::Black))
                 }

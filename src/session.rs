@@ -5,13 +5,11 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 /// Find the most recent Claude session UUID for a given directory
-pub fn find_latest_session_uuid(directory: &PathBuf) -> Option<String> {
+pub fn find_latest_session_uuid(directory: &std::path::Path) -> Option<String> {
     let claude_dir = dirs::home_dir()?.join(".claude/projects");
 
     // Encode directory path: /home/user/project -> -home-user-project
-    let encoded_path = directory
-        .to_string_lossy()
-        .replace('/', "-");
+    let encoded_path = directory.to_string_lossy().replace('/', "-");
 
     let project_dir = claude_dir.join(&encoded_path);
 
@@ -94,7 +92,15 @@ impl Session {
         cols: u16,
         rows: u16,
     ) -> Result<Self> {
-        Self::new_with_args(name, directory, claude_cmd, claude_config_dir, cols, rows, Vec::new())
+        Self::new_with_args(
+            name,
+            directory,
+            claude_cmd,
+            claude_config_dir,
+            cols,
+            rows,
+            Vec::new(),
+        )
     }
 
     pub fn new_with_args(
@@ -297,7 +303,9 @@ impl Session {
 
     fn extract_session_id(&self, text: &str) -> Option<String> {
         // Pattern: "SID:uuid" from our statusline script
-        if let Some(re) = regex_lite::Regex::new(r"SID:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})").ok() {
+        if let Ok(re) = regex_lite::Regex::new(
+            r"SID:([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})",
+        ) {
             if let Some(caps) = re.captures(text) {
                 return caps.get(1).map(|m| m.as_str().to_string());
             }
@@ -307,7 +315,7 @@ impl Session {
 
     fn extract_context_percent(&self, text: &str) -> Option<u8> {
         // Pattern 0: "CTX:XX%" from our statusline script (highest priority)
-        if let Some(re) = regex_lite::Regex::new(r"CTX:(\d{1,3})%").ok() {
+        if let Ok(re) = regex_lite::Regex::new(r"CTX:(\d{1,3})%") {
             if let Some(caps) = re.captures(text) {
                 if let Ok(num) = caps.get(1)?.as_str().parse::<u8>() {
                     if num <= 100 {
@@ -320,7 +328,9 @@ impl Session {
         let text_lower = text.to_lowercase();
 
         // Pattern 1: "XX% of context" or "context: XX%" or "XX% context"
-        if let Some(re) = regex_lite::Regex::new(r"(\d{1,3})\s*%\s*(?:of\s+)?context|context[:\s]+(\d{1,3})\s*%").ok() {
+        if let Ok(re) =
+            regex_lite::Regex::new(r"(\d{1,3})\s*%\s*(?:of\s+)?context|context[:\s]+(\d{1,3})\s*%")
+        {
             if let Some(caps) = re.captures(&text_lower) {
                 let num_str = caps.get(1).or(caps.get(2))?.as_str();
                 if let Ok(num) = num_str.parse::<u8>() {
@@ -332,7 +342,7 @@ impl Session {
         }
 
         // Pattern 2: "XXk/YYYk" or "XX.Xk / YYY.Yk" token format
-        if let Some(re) = regex_lite::Regex::new(r"(\d+(?:\.\d+)?)\s*k\s*/\s*(\d+(?:\.\d+)?)\s*k").ok() {
+        if let Ok(re) = regex_lite::Regex::new(r"(\d+(?:\.\d+)?)\s*k\s*/\s*(\d+(?:\.\d+)?)\s*k") {
             if let Some(caps) = re.captures(&text_lower) {
                 let used: f64 = caps.get(1)?.as_str().parse().ok()?;
                 let total: f64 = caps.get(2)?.as_str().parse().ok()?;
@@ -344,7 +354,7 @@ impl Session {
         }
 
         // Pattern 3: "X,XXX / YYY,YYY tokens" or similar
-        if let Some(re) = regex_lite::Regex::new(r"([\d,]+)\s*/\s*([\d,]+)\s*(?:tokens?)?").ok() {
+        if let Ok(re) = regex_lite::Regex::new(r"([\d,]+)\s*/\s*([\d,]+)\s*(?:tokens?)?") {
             if let Some(caps) = re.captures(&text_lower) {
                 let used_str = caps.get(1)?.as_str().replace(',', "");
                 let total_str = caps.get(2)?.as_str().replace(',', "");
